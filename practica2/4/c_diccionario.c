@@ -15,15 +15,10 @@ int main(int argc, char *argv[]){
     char res[256];
     char *search = "BUSCAR", *list = "LISTAR", *exit = "SALIR", *help = "AYUDA"; 
 
-    if(argc != 2){
-        printf("Entrada no valida.\nUsar:\n\t./c_diccionario {direccion_ip}\n");
-        return 1;
-    }
-
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr(argv[1]);
+    address.sin_addr.s_addr = inet_addr("127.0.0.1");
     address.sin_port = htons(PORT);
     len = sizeof(address);
 
@@ -34,7 +29,7 @@ int main(int argc, char *argv[]){
     }
 
     while(1) {
-        char req[256], inp[50];
+        char req[256] = "", inp[50] = "";
         printf("DICCIONARIO>");
         scanf("%s", inp);
 
@@ -57,7 +52,8 @@ int main(int argc, char *argv[]){
         if(req[0] != '9'){
             write(sockfd, &req, sizeof(req));
             read(sockfd, &res, 256);
-            if(strcmp(res, "ADIOS") == 0) {
+            if(req[0] == '0') {
+                close(sockfd);
                 break;
             }
             printf("\n---\n%s\n---\n", res);

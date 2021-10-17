@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define PORT 30003
@@ -35,32 +36,42 @@ int main(int argc, char *argv[]){
 
     listen(server_sockfd, 5);
     while(1) {
-        printf("escuchando...\n");
+        printf("ESCUCHANDO...\n");
 
         client_len = sizeof(client_addr);
         client_sockfd = accept(server_sockfd, 
             (struct sockaddr *)&client_addr, (unsigned int *)&client_len);
-        printf("conectado...\n");
+
         while(1){
-            char req[256];
+            char req[256] = "", res[256] = "";
             read(client_sockfd, &req, 256);
-            printf(">%s\n", req);
+
+            printf("PETICION>%s\n", req);
+
             if(req[0] == '0'){
-                write(client_sockfd, "ADIOS", 256);
+                write(client_sockfd, "ADIOS", 5);
+                close(client_sockfd);
                 break;
+
             } else if(req[0] == '1'){
-                write(client_sockfd, "listar", 256);                
+                for(int i = 0; i<N; i++){
+                    strcat(res, palabras[i]);
+                    strcat(res, "\n");
+                }
+                write(client_sockfd, res, sizeof(res));  
+
             } else if(req[0] == '2'){
                 write(client_sockfd, "BUSCAR <palabra>\nAYUDA\nLISTAR\nSALIR\n", 256);
+
             } else if(req[0] == '3'){
-                char res[20];
                 strncpy(res, &req[1], sizeof(req));
                 for(int i=0; i<N; i++){
-                    if(strcmp(palabras[i], res)){
+                    if(strcmp(palabras[i], res) == 0){
                         write(client_sockfd, defs[i], 256);
                         break;
                     }
                 }
+
             } else {
                 printf("ERROR\n");
             }

@@ -8,27 +8,20 @@
 
 #define PORT 30000
 
-int descifrar(char*, char*);
-int cifrar(char*, char*);
+int indiceDe(char);
+int esMayuscula(char);
 
-int descifrar(char* m_cifrado, char* m_descifrado) {
-    //char* ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
-    //char* abc = "abcdefghijklmnopqrstuvwxyz";
-    int i = 0;
-    while(m_cifrado[i] != '\0'){
-        m_descifrado[i] = (m_cifrado[i] + i) % 26;
+int indiceDe(char letra){
+    char *ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
+    char *abc = "abcdefghijklmnopqrstuvwxyz";
+    for(int i = 0; i < 26; i++){
+        if(ABC[i] == letra || abc[i] == letra) return i;
     }
-    return 0;
+    return -1;
 }
 
-int cifrar(char* m_descifrado, char* m_cifrado) {
-    //char* ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
-    //char* abc = "abcdefghijklmnopqrstuvwxyz";
-    int i = 0;
-    while(m_descifrado[i] != '\0'){
-        m_cifrado[i] = (m_descifrado[i] - i) % 26;
-    }
-    return 0;
+int esMayuscula(char letra){
+    return letra <= 90 && letra >= 65;
 }
 
 int main(int argc, char *argv[]){
@@ -36,37 +29,65 @@ int main(int argc, char *argv[]){
     int server_len, client_len;
     struct sockaddr_in server_address;
     struct sockaddr_in client_address;
-    char *buffer, *res;
+
+    int corrido, indice;
+    char *ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; 
+    char *abc = "abcdefghijklmnopqrstuvwxyz";
 
     server_sockfd = socket(AF_INET, SOCK_STREAM, 0);					
 
     server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = htonl("127.0.0.1");
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
     server_address.sin_port = htons(PORT);
     server_len = sizeof(server_address);
 
     bind(server_sockfd, (struct sockaddr *)&server_address, server_len);
 
-    memset(buffer, 0, 256);
     listen(server_sockfd, 5);
     while(1) {
-        printf("escuchandp...\n");
+        char buffer[256], res[256] = "";
+        printf("ESCUCHANDO...\n");
 
         client_len = sizeof(client_address);
         client_sockfd = accept(server_sockfd, 
             (struct sockaddr *)&client_address, (unsigned int *)&client_len);
 
-        read(client_sockfd, &buffer, 256);
+        read(client_sockfd, &buffer, sizeof(buffer));
 
         if(buffer[0] == '0'){
-            cifrar(buffer, res);
-        } else if(buffer[0] == '1') {
-            descifrar(buffer, res);
-        } else {
-            res = "invalid";
-        }
 
-        write(client_sockfd, &res, 256);
+            printf("CIFRANDO> %s...\n", buffer);
+
+            for(int i = 1; i < strlen(buffer); i++){
+                indice = indiceDe(buffer[i]);
+                corrido = (indice - 3 + 26) % 26;
+
+                if(indice != -1 && esMayuscula(buffer[i])) res[i-1] = ABC[corrido];
+                else if(indice != -1) res[i-1] = abc[corrido];
+                else res[i-1] = buffer[i];
+            }
+
+            printf("CIFRADO> %s\n", res);
+
+        } else if(buffer[0] == '1') {
+
+            printf("DESCIFRANDO> %s...\n", buffer);
+
+            for(int i = 1; i < strlen(buffer); i++){
+                indice = indiceDe(buffer[i]);
+                corrido = (indice + 3 + 26) % 26;;
+
+                if(indice != -1 && esMayuscula(buffer[i])) res[i-1] = ABC[corrido];
+                else if(indice != -1) res[i-1] = abc[corrido];
+                else res[i-1] = buffer[i];
+            }
+
+            printf("DESCIFRADO> %s...\n", res);
+
+        } else {
+            strcpy(res, "INVALIDO\n");
+        }
+        write(client_sockfd, &res, strlen(res));
         close(client_sockfd);
     }
     return 0;
