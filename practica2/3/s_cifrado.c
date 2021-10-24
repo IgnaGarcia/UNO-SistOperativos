@@ -45,7 +45,7 @@ int main(int argc, char *argv[]){
 
     listen(server_sockfd, 5);
     while(1) {
-        char buffer[256], res[256] = "";
+        char buffer[256] = "", res[256] = "";
         printf("ESCUCHANDO...\n");
 
         client_len = sizeof(client_address);
