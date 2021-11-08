@@ -42,13 +42,10 @@ int main(int argc, char *argv[]){
         perror("error al leer");
         return 1;
     }
-    printf("[%s] %s\n", argv[1], buffer);
 
     x = buffer[0]*0x1000000LU + buffer[1]*0x10000LU + buffer[2]*0x100LU + buffer[3];
-    printf("[%s] %s\n", argv[1], ctime(&x));
     x -= OFFSET;
 
-    //FIX: hora mal convertida, preguntar a pablo o x
     printf("[%s] %s\n", argv[1], ctime(&x));
     
     close(sockfd);
